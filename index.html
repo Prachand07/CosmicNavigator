@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Navigator</title>
+    <style>
+        body {
+            background-image: url('wall6.jpg');
+            
+            background-color: #ffffff;
+            
+            background-repeat: no-repeat;
+           
+            background-size: cover;
+            
+            background-position: center center;
+           
+            background-attachment: fixed;
+            
+            color: #ffffff;
+        }
+
+        nav {
+            padding: 1%;
+            display: flex;
+            align-items: center;
+        }
+
+
+
+
+        .logo {
+            padding-left: 0;
+        }
+
+        .inputnav {
+            width: 100%;
+            display: flex;
+            justify-content: right;
+            margin-right: 5%;
+        }
+
+        .inputz {
+            padding: 2%;
+            border-radius: 10px;
+            border: 0;
+        }
+
+
+
+
+        .response-item {
+
+            font-size: 1.4rem;
+        }
+
+        .response-key {
+            font-weight: bold;
+           font-style: oblique;
+            color: #ffd500;
+        }
+
+
+
+        .container {
+            display: flex;
+        }
+
+        .topdiv {
+            display: flex;
+            align-items: center;
+        }
+
+        
+
+        #name {
+            padding: 5px;
+            border: 0;
+        }
+
+        .btn {
+            
+            padding: 5px;
+            margin: 10px auto;
+        }
+
+        #responseContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        #imageContainer {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #imageContainer img {
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        .h1top {
+            font-size: 4rem;
+            width: 70%;
+            text-align: center;
+        }
+
+        @media only screen and (max-width: 768px) {
+            .topdiv {
+                display: block;
+                margin: 0 auto;
+               
+                text-align: center;
+                
+            }
+
+
+            .h1top {
+                font-size: 2rem;
+                width: 100%;
+                text-align: center;
+            }
+
+            .response-item {
+
+                font-size: 1rem;
+
+            }
+
+            #responseContainer {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                width: 90%;
+                padding: 20px;
+                justify-content: center;
+            }
+
+            #imageContainer {
+                width: 89%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+
+        a {
+            color: rgb(255, 255, 255);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topdiv">
+
+        <a class="logo" href="/"><img src="./logotransp.png" height="170px"></a>
+        <h1 class="h1top">
+            Cosmic Navigator
+        </h1>
+
+    </div>
+
+    <center>
+        <h1>Enter Constellation Name</h1>
+
+        <h2>
+            Try searching:-&nbsp;
+            <a href="#" class="constellation-link" data-constellation="Aquarius">Aquarius</a>,
+            <a href="#" class="constellation-link" data-constellation="Orion">Orion</a>,
+            <a href="#" class="constellation-link" data-constellation="Draco">Draco</a>
+        </h2>
+    </center>
+    <center>
+
+        <div class="cn">
+            <form id="nameForm" class="search-bar">
+                <label for="name"></label>
+                <input type="text" id="name" name="name" required>
+                <button class="btn" type="submit">Send</button>
+            </form>
+        </div>
+    </center>
+
+    <div class="container">
+        <div id="responseContainer"></div>
+        <div id="imageContainer" class="image-container"></div>
+    </div>
+    <script>
+        
+        document.getElementById('nameForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            let name = document.getElementById('name').value;
+            name = name.trim();
+            name = name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+            try {
+                const apiEndpoint = 'https://wxpvnajc45.execute-api.eu-north-1.amazonaws.com/test';
+                const fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ "name": name })
+                };
+
+                const response = await fetch(apiEndpoint, fetchOptions);
+
+                if (!response.ok) {
+                    throw new Error('HTTP error Status: ${response.status}');
+                }
+
+                let result = await response.json();
+                if (!result || Object.keys(result).length === 0 || result.body === undefined) {
+                    result = { responses: 'No details found for the name' };
+                } else {
+                    result = result.body;
+                }
+
+                const responseContainer = document.getElementById('responseContainer');
+                responseContainer.innerHTML = '';
+
+                for (const key in result) {
+                    if (key !== 'ImageURL' && result[key]) {
+                        const responseItem = document.createElement('div');
+                        responseItem.classList.add('response-item');
+
+                        const responseKey = document.createElement('span');
+                        responseKey.classList.add('response-key');
+                        responseKey.textContent = key + ': ';
+
+                        const responseValue = document.createElement('span');
+                        responseValue.textContent = result[key];
+
+                        responseItem.appendChild(responseKey);
+                        responseItem.appendChild(responseValue);
+                        responseContainer.appendChild(responseItem);
+                    }
+                }
+                 
+                
+                
+                const imageContainer = document.getElementById('imageContainer');
+                imageContainer.innerHTML = '';
+                if (result.hasOwnProperty('ImageURL') && result.ImageURL) {
+                    const image = document.createElement('img');
+                    image.src = result.ImageURL;
+                    image.alt = 'Image associated with the provided name';
+                    imageContainer.appendChild(image);
+                }
+
+                
+                const container = document.querySelector('.container');
+                const screenWidth = window.innerWidth;
+
+                if (screenWidth < 786 && Object.keys(result).length > 0) {
+                    container.style.display = 'block';
+                } else {
+                    if (screenWidth > 786 && Object.keys(result).length > 0) {
+                        container.style.display = 'flex';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                }
+
+
+
+               
+                if (Object.keys(result).length > 0) {
+                    container.style.backgroundColor = 'rgba(83, 70, 70, 0.274)';
+                    container.style.boxShadow = '10px 10px 50px black';
+                    container.style.borderRadius = '10px';
+                    container.style.marginTop = '2% 0%';
+                    container.style.overflow = 'scroll';
+                } else {
+                    
+                    container.style.backgroundColor = '';
+                    container.style.boxShadow = '';
+                    container.style.borderRadius = '';
+                    container.style.marginTop = '';
+                    container.style.overflow = '';
+                }
+
+
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        });
+
+        
+        const constellationLinks = document.querySelectorAll('.constellation-link');
+        constellationLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const constellationName = link.getAttribute('data-constellation');
+                document.getElementById('name').value = constellationName;
+            
+            });
+        });     
+
+    </script>
+
+</body>
+
+</html>
